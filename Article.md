@@ -411,8 +411,273 @@ Now update the 'scripts' section of your **package.json** file to look like the 
 2. start script now serves the content of the build/ folder instead of the src/ folder we were serving previously. This is the script you’ll use when serving the file in production. In fact, services like Heroku automatically run this script when you deploy.
 3. yarn startdev is used to start the server during development. From now on we will be using this script as we develop the app. Notice that we’re now using babel-node to run the app instead of regular node. The --exec flag forces babel-node to serve the src/ folder. For the start script, we use node since the files in the build/ folder have been compiled to ES5.
 
+Run yarn startdev and visit http://localhost:3000/v1. Your server should be up and running again.
 
+The final step in this section is to configure **ESLint** and **prettier**. **ESLint** helps with enforcing syntax rules while **prettier** helps for formatting our code properly for readability.
 
+Add both of them with the command below. You should run this on a separate terminal while observing the terminal where our server is running. You should see the server restarting. This is because we’re monitoring package.json file for changes.
+
+```
+yarn add eslint eslint-config-airbnb-base eslint-plugin-import prettier --dev
+```
+
+Now create the **.eslintrc.json** file in the project root and add the below code:
+
+```
+{
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true,
+    "mocha": true
+  },
+  "extends": ["airbnb-base"],
+  "globals": {
+    "Atomics": "readonly",
+    "SharedArrayBuffer": "readonly"
+  },
+  "parserOptions": {
+    "ecmaVersion": 2018,
+    "sourceType": "module"
+  },
+  "rules": {
+    "indent": ["warn", 2],
+    "linebreak-style": ["error", "unix"],
+    "quotes": ["error", "single"],
+    "semi": ["error", "always"],
+    "no-console": 1,
+    "comma-dangle": [0],
+    "arrow-parens": [0],
+    "object-curly-spacing": ["warn", "always"],
+    "array-bracket-spacing": ["warn", "always"],
+    "import/prefer-default-export": [0]
+  }
+}
+```
+
+This file mostly defines some rules against which **eslint** will check our code. You can see that we’re extending the style rules used by Airbnb.
+
+In the "rules" section, we define whether eslint should show a warning or an error when it encounters certain violations. For instance, it shows a warning message on our terminal for any indentation that does not use 2 spaces. A value of [0] turns off a rule, which means that we won’t get a warning or an error if we violate that rule.
+
+Create a file named **.prettierrc** and add the code below:
+
+```
+{
+  "trailingComma": "es5",
+  "tabWidth": 2,
+  "semi": true,
+  "singleQuote": true
+}
+```
+
+We’re setting a tab width of 2 and enforcing the use of single quotes throughout our application. Do check the prettier guide for more styling options.
+
+Now add the following scripts to your **package.json**:
+
+```
+"lint": "./node_modules/.bin/eslint ./src"
+
+"pretty": "prettier --write '**/*.{js,json}' '!node_modules/**'"
+
+"postpretty": "yarn lint --fix"
+```
+
+Run **yarn lint**. You should see a number of errors and warnings in the console.
+
+The **pretty** command prettifies our code. The **postpretty** command is run immediately after. It runs the lint command with the --fix flag appended. This flag tells ESLint to automatically fix common linting issues. In this way, I mostly run the yarn pretty command without bothering about the lint command.
+
+Run **yarn pretty**. You should see that we have only two warnings about the presence of alert in the **bin/www.js** file.
+
+Here’s what our project structure looks like at this point.
+
+EXPRESS-API-TEMPLATE
+├── build
+├── node_modules
+├── src
+|   ├── bin
+│   │   ├── www.js
+│   ├── routes
+│   |   ├── index.js
+│   └── app.js
+├── .babelrc
+├── .editorconfig
+├── .eslintrc.json
+├── .gitignore
+├── .prettierrc
+├── nodemon.json
+├── package.json
+├── README.md
+└── yarn.lock
+
+You may find that you have an additional file, yarn-error.log in your project root. Add it to .gitignore file. Commit your changes.
+
+## Settings And Environment Variables In Our .Env File
+
+In nearly every project, you’ll need somewhere to store settings that will be used throughout your app (e.g. an AWS secret key). 
+
+We store such settings as environment variables. This keeps them away from prying eyes, and we can use them within our application as needed.
+
+I like having a **settings.js** file with which I read all my environment variables. Then, I can refer to the settings file from anywhere within my app. You’re at liberty to name this file whatever you want, but there’s some kind of consensus about naming such files settings.js or config.js.
+
+For our environment variables, we’ll keep them in a .env file and read them into our settings file from there.
+
+Create the **.env** file at the root of your project and enter the below line:
+
+```
+TEST_ENV_VARIABLE="Environment variable is coming across"
+```
+
+To be able to read environment variables into our project, there’s a nice library, **dotenv** that reads our **.env** file and gives us access to the environment variables defined inside. Let’s install it.
+
+```
+yarn add dotenv
+```
+
+Add the **.env** file to the list of files being watched by nodemon.
+
+Now, create the **settings.js** file inside the **src/** folder and add the below code:
+
+```
+import dotenv from 'dotenv';
+dotenv.config();
+export const testEnvironmentVariable = process.env.TEST_ENV_VARIABLE;
+```
+
+We import the **dotenv** package and call its **config** method. We then export the **testEnvironmentVariable** which we set in our **.env** file.
+
+Open **src/routes/index.js** and add the line below, after the first line.
+
+```
+# Resulting code...
+
+import express from 'express';
+import { testEnvironmentVariable } from '../settings';
+
+const indexRouter = express.Router();
+
+indexRouter.get('/', (req, res) => res.status(200).json({ message: testEnvironmentVariable }));
+
+export default indexRouter;
+```
+
+The only change we’ve made here is that we import **testEnvironmentVariable** from our **settings.js** file and use it as the return message for a request from the '/' route.
+
+Visit http://localhost:3000/v1 and you should see the message, as shown below.
+
+```
+{
+  "message": "Environment variable is coming across."
+}
+```
+
+And that’s it! From now on, we can add as many environment variables as we want and we can export them from our **settings.js** file.
+
+This is a good point to commit your code. Remember to **prettify** and **lint** your code.
+
+## Writing Our First Test
+
+It’s time to incorporate testing into our app. One of the things that give the developer confidence in their code is tests. I’m sure you’ve seen countless articles on the web preaching Test-Driven Development (TDD). It cannot be emphasized enough that your code needs some measure of testing. TDD is very easy to follow when you’re working with Express.js.
+
+In our tests, we will make calls to our API endpoints and check to see if what is returned is what we expect.
+
+Initially, we need to install the required dependencies, as follows:
+
+```
+yarn add mocha chai nyc sinon-chai supertest coveralls --dev
+```
+Each of these libraries has its own role to play in our tests.
+
+**mocha**
+test runner
+
+**chai**
+used to make assertions
+
+**nyc**
+collect test coverage report
+
+**sinon-chai**
+extends chai’s assertions
+
+**supertest**
+used to make HTTP calls to our API endpoints
+
+**coveralls**
+for uploading test coverage to **coveralls.io**
+
+Create a new **test/** folder at the **root** of your project. Create two files inside this folder:
+
+1. test/setup.js
+2. test/index.test.js
+
+**Mocha** will find the **test/** folder automatically.
+
+Open up **test/setup.js** and paste the below code. This is just a helper file that helps us organize all the imports we need in our test files.
+
+```
+/**
+ * Dependencies
+ */
+import supertest from 'supertest';
+import chai from 'chai';
+import sinonChai from 'sinon-chai';
+import app from '../src/app';
+
+chai.use(sinonChai);
+export const { expect } = chai;
+export const server = supertest.agent(app);
+export const BASE_URL = '/v1';
+```
+
+This is like a settings file, but for our tests. This way we don’t have to initialize everything inside each of our test files. So we import the necessary packages and export what we initialized — which we can then import in the files that need them.
+
+Open up **index.test.js** and paste the following test code.
+
+```
+import { expect, server, BASE_URL } from './setup';
+
+describe('Index page test', () => {
+  it('gets base url', done => {
+    server
+      .get(`${BASE_URL}/`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.body.message).to.equal(
+          'Environment variable is coming across.'
+        );
+        done();
+      });
+  });
+});
+```
+
+Here we make a request to get the base endpoint, which is '/' and assert that the **res.body** object has a message key with a value of **Environment** variable is coming across.
+
+If you’re not familiar with the **describe** - **it** pattern, I encourage you to take a quick look at **Mocha’s “Getting Started”** [https://mochajs.org/#getting-started] doc.
+
+Add the test command to the scripts section of **package.json**.
+
+```
+"test": "nyc --reporter=html --reporter=text --reporter=lcov mocha -r @babel/register"
+```
+
+This script executes our test with **nyc** and generates three kinds of coverage report: an HTML report, outputted to the **coverage/** folder; a text report outputted to the **terminal** and a **lcov** report outputted to the **.nyc_output/** folder.
+
+Now run **yarn test**. You should see a text report in your terminal just like the image shown below.
+
+```
+GOT GET THE OUTPUT AND FIND A WAY TO PUT IT HERE...
+```
+
+Notice that two additional folders were generated:
+
+1. **.nyc_output/**
+2. **coverage/**
+
+Look inside **.gitignore** and you’ll see that we’re already ignoring both. I encourage you to open up **coverage/index.html** in a browser and view the test report for each file.
+
+This is a good point to commit your changes.
 
 
 
