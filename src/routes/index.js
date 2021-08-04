@@ -8,6 +8,8 @@ import express from 'express';
  * Custom
  */
 import { indexPage, messagesPage, addMessage } from '../controllers';
+import { modifyMessage, performAsyncAction } from '../middleware';
+
 // import { testEnvironmentVariable } from '../settings';
 
 const indexRouter = express.Router();
@@ -24,6 +26,6 @@ const indexRouter = express.Router();
 // AFTER
 indexRouter.get('/', indexPage);
 indexRouter.get('/messages', messagesPage);
-indexRouter.post('/messages', addMessage);
+indexRouter.post('/messages', modifyMessage, performAsyncAction, addMessage);
 
 export default indexRouter;

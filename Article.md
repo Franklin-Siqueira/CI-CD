@@ -1212,9 +1212,185 @@ This test makes a **POST** request to the **/v1/messages** endpoint and we expec
 
 To send post requests, we use the post method of the server. We also send the name and message we want to insert. We expect the response to be an array, with a property id and the other info that makes up the query. The id is proof that a record has been inserted into the database.
 
-Open src/models/model.js and add the insert method:
+Open **src/models/model.js** and add the insert method:
 
+```
+async insertWithReturn(columns, values) {
+  const query = `
+        INSERT INTO ${this.table}(${columns})
+        VALUES (${values})
+        RETURNING id, ${columns}
+    `;
+  return this.pool.query(query);
+}
+```
 
+This is the method that allows us to insert messages into the database. After inserting the item, it returns the id, name and message.
 
+Open **src/controllers/messages.js** and add the below controller:
 
+```
+export const addMessage = async (req, res) => {
+  const { name, message } = req.body;
+  const columns = 'name, message';
+  const values = `'${name}', '${message}'`;
+  try {
+    const data = await messagesModel.insertWithReturn(columns, values);
+    res.status(200).json({ messages: data.rows });
+  } catch (err) {
+    res.status(200).json({ messages: err.stack });
+  }
+};
+```
 
+We destructure the request body to get the name and message. Then we use the values to form an SQL query string which we then execute with the insertWithReturn method of our model.
+
+Add the below POST endpoint to /src/routes/index.js and update your import line.
+
+```
+import { indexPage, messagesPage, addMessage } from '../controllers';
+
+indexRouter.post('/messages', addMessage);
+```
+
+Run your tests to see if they pass.
+
+Open **Postman** and send a **POST** request to the messages endpoint. If you’ve just run your test, remember to run **yarn runQuery** to recreate the messages table.
+
+Next, refresh [http://localhost:3000/v1/messages] and have a look at the results. The new message is expected to be listed. If that does not happen, please review the steps above.
+
+We've travelled a long way this far. So, let's feed our repo again. It's time to add and commit our improvements. Our tests should pass on both Travis and AppVeyor. Your test coverage will drop by a few points, but that’s okay.
+
+### Middleware
+
+Our discussion of **Express** won’t be complete without talking about **middleware**. The **Express** documentation describes a middlewares as:
+
+**“[...] functions that have access to the request object [https://expressjs.com/en/4x/api.html#req] (req), the response object [https://expressjs.com/en/4x/api.html#res] (res), and the next middleware function in the application’s request-response cycle. The next middleware function is commonly denoted by a variable named next.”**
+
+A **middleware** can perform any number of functions such as authentication, modifying the request body, and so on. 
+
+See the **Express documentation on using middleware**[https://expressjs.com/en/guide/using-middleware.html].
+
+We’re going to write a simple **middleware** that modifies the request body. Our **middleware** will *append the word SAYS:* to the incoming message before it is saved in the database.
+
+Before we start, let’s modify our test to reflect what we want to achieve.
+
+Open up **test/messages.test.js** and modify the last expect line in the **posts message** test case:
+
+```
+it('posts messages', done => {
+   ...
+  expect(m).to.have.property('message', `READS: ${data.message}`); # update this line
+    ...
+});
+```
+
+We’re asserting that the *SAYS:* string has been appended to the message. Run your tests to make sure this test case fails.
+
+Now, let’s write the code to make the test pass.
+
+Create a new middleware/ folder inside src/ folder. Create two files inside this folder:
+
+1. middleware.js
+2. index.js
+
+Enter the below code in middleware.js:
+
+```
+export const modifyMessage = (req, res, next) => {
+  req.body.message = `READS: ${req.body.message}`;
+  next();
+};
+```
+
+Here, we append the string SAYS: to the message in the request body. After doing that, we must call the next() function to pass execution to the next function in the request-response chain. Every middleware has to call the next function to pass execution to the next middleware in the request-response cycle.
+
+Enter the below code in **index.js**:
+
+```
+export * from './middleware';
+```
+
+This exports the **middleware** we have in the **/middleware.js** file. For now, we only have the **modifyMessage** middleware.
+
+Open **src/routes/index.js** and add the **middleware** to the post message **request-response** chain.
+
+```
+import { modifyMessage } from '../middleware';
+...
+indexRouter.post('/messages', modifyMessage, addMessage);
+```
+
+We can see that the **modifyMessage** function comes before the **addMessage** function. We invoke the **addMessage** function by calling next in the **modifyMessage** middleware. 
+
+After running the query (i.e., **yarn runQuery**), go to **Postman** and create a new message. You should see the appended string.
+
+As an experiment, comment out the **next()** line in the **modifyMessage** middle and watch the request hang.
+
+### Error Handling And Asynchronous Middleware
+
+**Errors** are inevitable in any application. The task before the developer is how to deal with **errors** as gracefully as possible.
+
+From **Express**:
+
+**“Error Handling refers to how Express catches and processes errors that occur both synchronously and asynchronously."**
+
+If we were only writing synchronous functions, we might not have to worry so much about error handling as Express already does an excellent job of handling those. According to the docs:
+
+**“Errors that occur in synchronous code inside route handlers and middleware require no extra work.”**
+
+But once we start writing **asynchronous** router handlers and middleware, then we have be prepared providing some error handling.
+
+Our **modifyMessage** middleware is a synchronous function. If an error occurs in that function, Express will handle it just fine. Let’s see how we deal with errors in asynchronous middleware.
+
+Let’s say, before creating a message, we want to get a picture from the **Lorem Picsum API**[https://picsum.photos/] using this **URL**[https://picsum.photos/id/0/info]. This is an **asynchronous** operation that could either succeed or fail, and that presents a case for us to deal with.
+
+Let's begin by installing **Axios**.
+
+```
+yarn add axios
+```
+
+Open **src/middleware/middleware.js** and add the code below:
+
+```
+export const performAsyncAction = async (req, res, next) => {
+  try {
+    await axios.get('https://picsum.photos/id/0/info');
+    next();
+  } catch (err) {
+    next(err);
+  }
+};
+```
+
+In this **async** function, we **await** a call to an **API** (we don’t actually need the returned data) and afterward call the next function in the request chain. If the request fails, we catch the error and pass it on to next. Once Express sees this error, it skips all other middleware in the chain. If we didn’t call **next(err)**, the request would hang. If we only called **next()** without **err**, the request would proceed as if nothing had happened and the error would not be caught.
+
+With that said, let's import this function and add it to the **middleware** chain of the **post messages route**:
+
+```
+import { modifyMessage, performAsyncAction } from '../middleware';
+...
+indexRouter.post('/messages', modifyMessage, performAsyncAction, addMessage);
+...
+```
+
+Open **src/app.js** and add the below code just before the export default app line.
+
+```
+...
+app.use((err, req, res, next) => {
+  res.status(400).json({ error: err.stack });
+});
+...
+```
+
+This is our error handler. According to the Express error handling doc:
+
+**“[...] error-handling functions have four arguments instead of three: (err, req, res, next).”**
+
+**Note** that this error handler must come last, after every **app.use()** call. 
+
+Once the app finds an error, it returns the stack trace with a status code of **400**. You could do whatever you like with the error. You might want to log it or send it somewhere.
+
+You've reached another checkpoint and it's time to commit the changes.
