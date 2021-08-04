@@ -7,12 +7,23 @@ import express from 'express';
 /**
  * Custom
  */
-import { testEnvironmentVariable } from '../settings';
+import { indexPage, messagesPage, addMessage } from '../controllers';
+// import { testEnvironmentVariable } from '../settings';
 
 const indexRouter = express.Router();
 
-indexRouter.get('/', (req, res) => {
-  res.status(200).json({ message: `Welcome to EXPRESS API TEMPLATE! This is our env ${testEnvironmentVariable}` });
-});
+// BEFORE adding ../controllers
+// indexRouter.get('/', (req, res) => {
+//   res.status(200)
+//    .json(
+// {
+//   message: `Welcome to EXPRESS API TEMPLATE! This is our env ${testEnvironmentVariable}` 
+// }
+// );
+// });
+// AFTER
+indexRouter.get('/', indexPage);
+indexRouter.get('/messages', messagesPage);
+indexRouter.post('/messages', addMessage);
 
 export default indexRouter;

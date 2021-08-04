@@ -183,7 +183,7 @@ yarn start
 
 If you’ve set up everything correctly you should only see $ node ./src/bin/www in your terminal.
 
-Visit http://localhost:3000/v1 in your browser. You should see the following message:
+Visit [http://localhost:3000/v1] in your browser. You should see the following message:
 
 ```
 {
@@ -678,6 +678,543 @@ Notice that two additional folders were generated:
 Look inside **.gitignore** and you’ll see that we’re already ignoring both. I encourage you to open up **coverage/index.html** in a browser and view the test report for each file.
 
 This is a good point to commit your changes.
+
+## Continuous Integration(CD) And Badges: Travis, Coveralls, Code Climate, AppVeyor
+
+It’s now time to configure continuous integration and deployment **(CI/CD)** tools. We will configure common services such as **travis-ci**, **coveralls**, **AppVeyor**, and **codeclimate** and add badges to our **README** file.
+
+Let’s get started.
+
+### TRAVIS CI
+
+**Travis CI** is a tool that runs our tests automatically each time we push a commit to **GitHub** (and recently, **Bitbucket**) and each time we create a pull request. This is mostly useful when making pull requests by showing us if the our new code has broken any of our tests.
+
+1. Visit **travis-ci.com** and create an account if you don’t have one. You have to sign up with your GitHub account.
+2. Hover over the dropdown arrow next to your profile picture and click on **settings**.
+3. Under **Repositories** tab click **Manage repositories on Github** to be redirected to **Github**.
+4. On the **GitHub** page, scroll down to **Repository** access and click the checkbox next to **Only select repositories**.
+5. Click the **Select repositories** dropdown and find the **express-api-template** repo. Click it to add it to the list of repositories you want to add to **travis-ci**.
+6. Click **Approve and install** and wait to be redirected back to **travis-ci**.
+7. At the top of the repo page, close to the repo name, click on the **build unknown** icon. From the **Status Image modal**, select **markdown** from the format dropdown.
+8. **Copy** the resulting code and paste it in your **README.md** file.
+9. On the project page, click on **More options > Settings**. Under **Environment Variables** section, add the **TEST_ENV_VARIABLE** env variable. When entering its value, be sure to have it within double quotes like this **"Environment variable is coming across."**
+10. Create **.travis.yml** file at the root of your project and paste in the below code (We’ll set the value of **CC_TEST_REPORTER_ID** in the Code Climate section).
+
+```
+language: node_js
+env:
+  global:
+    - CC_TEST_REPORTER_ID=get-this-from-code-climate-repo-page
+matrix:
+  include:
+  - node_js: '12'
+cache:
+  directories: [node_modules]
+install:
+  yarn
+after_success: yarn coverage
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
+script:
+  - yarn test
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESUL
+```
+
+#### Here's What is Happenning
+
+First, we tell **Travis** to run our test with **Node.js**, then set the **CC_TEST_REPORTER_ID** global environment variable (we’ll get to this in the **Code Climate** section). In the **matrix** section, we tell **Travis** to run our tests with **Node.js v12**. We also want to cache the **node_modules/** directory so it doesn’t have to be regenerated every time.
+
+We install our dependencies using the **yarn** command which is a shorthand for **yarn install**. The **before_script** and **after_script** commands are used to upload coverage results to **codeclimate**. We’ll configure **codeclimate** shortly. After **yarn test** runs successfully, we want to also run **yarn coverage** which will upload our coverage report to **coveralls.io**.
+
+
+### COVERALLS
+
+**Coveralls** uploads test coverage data for easy visualization. We can view the test coverage on our local machine from the coverage folder, but **Coveralls** makes it available outside our local machine.
+
+1. Visit **coveralls.io** and either **sign** in or **sign up** with your **Github** account.
+2. Hover over the left-hand side of the screen to reveal the navigation menu. Click on **ADD REPOS**.
+3. Search for the **express-api-template** repo and turn on coverage using the toggle button on the left-hand side. If you can’t find it, click on **SYNC REPOS** on the upper right-hand corner and try again. **Note that your repo has to be public, unless you have a PRO account**.
+4. Click **details** to go to the repo details page.
+5. Create the **.coveralls.yml** file at the **root** of your project and enter the code below. To get the **repo_token**, click on the **repo details**. You will find it easily on that page. You could just do a browser search for **repo_token**.
+
+```
+repo_token: get-this-from-repo-settings-on-coveralls.io
+```
+
+This token maps your coverage data to a **repo** on **Coveralls**. Now, add the coverage command to the scripts section of your **package.json** file:
+
+```
+"coverage": "nyc report --reporter=text-lcov | coveralls"
+```
+
+This command uploads the **coverage report** in the **.nyc_output** folder to **coveralls.io**. Turn on your **Internet connection** and run:
+
+```
+yarn coverage
+```
+
+This should upload the existing **coverage report** to **coveralls**. Refresh the **repo** page on **coveralls** to see the full report.
+
+On the **details** page, scroll down to find the **BADGE YOUR REPO** section. Click on the **EMBED** dropdown and copy the markdown code and paste it into your **README** file.
+
+### CODE CLIMATE
+
+**Code Climate** is a tool that helps us measure code quality. It shows us maintenance metrics by checking our code against some defined patterns. It detects things such as unnecessary repetition and deeply nested for loops. It also collects test coverage data just like **coveralls.io**.
+
+1. Visit **codeclimate.com** and click on ‘Sign up with GitHub’. Log in if you already have an account.
+2. Once in your **dashboard**, click on **Add a repository**.
+3. Find the express-api-template repo from the list and click on **Add Repo**.
+4. Wait for the build to complete and redirect to the repo dashboard.
+5. Under **Codebase Summary**, click on **Test Coverage**. Under the **Test coverage** menu, copy the **TEST REPORTER ID** and paste it in your **.travis.yml** as the value of **CC_TEST_REPORTER_ID**.
+6. Still on the same page, on the **left-hand navigation**, under **EXTRAS**, click on **Badges**. Copy the **maintainability** and **test coverage** badges in markdown format and **paste** them into your **README.md** file.
+
+It’s **important to note** that there are two ways of configuring maintainability checks. There are the default settings that are applied to every repo, but if you like, you could provide a **.codeclimate.yml** file at the root of your project. I’ll be using the default settings, which you can find under the Maintainability tab of the repo settings page. I encourage you to take a look at least. If you still want to configure your own settings, this **guide**[https://docs.codeclimate.com/docs/advanced-configuration] will give you all the information you need.
+
+### APPVEYOR
+
+**AppVeyor** and **Travis CI** are both **automated test runners**. The main difference is that **travis-ci** runs tests in a **Linux environment** while **AppVeyor** runs tests in a **Windows environment**. This section is included to show how to get started with **AppVeyor**.
+
+
+
+1. Visit **AppVeyor**[https://ci.appveyor.com/] and **log in** or **sign up**.
+2. On the next page, click on **NEW PROJECT**.
+3. From the **repo list**, find the **express-api-template repo**. Hover over it and click **ADD**.
+4. Click on the **Settings** tab. Click on **Environment** on the **left navigation**. Add **TEST_ENV_VARIABLE** and its value. Click **Save** at the **bottom of the page**.
+5. Create the **appveyor.yml** file at the root of your project and paste in the code that follows:
+
+```
+environment:
+  matrix:
+  - nodejs_version: "12"
+install:
+  - yarn
+test_script:
+  - yarn test
+build: off
+```
+
+The code above instructs **AppVeyor** to run our tests using **Node.js v12**. We then install our project **dependencies** with the **yarn** command. **test_script** specifies the command to run our test. The last line tells **AppVeyor** not to create a build folder.
+
+Click on the **Settings** tab. On the **left-hand navigation**, click on **badges**. Copy the **markdown code** and paste it in your **README.md** file.
+
+**Commit** your code and **push** to **GitHub**. If you have done everything as instructed all tests should pass and you should see your shiny new badges as shown below. 
+
+```
+SHOW GITHUB README SCREENSHOT...
+```
+
+**Check** again that you have set the **environment variables on Travis and AppVeyor**.
+
+## Create a Controller
+
+Currently, we’re handling the **GET** request to the **root URL**, **/v1**, inside the **src/routes/index.js**. This works as expected and there is nothing wrong with it. However, as your application grows, you want to keep things tidy. You want concerns to be separated — you want a clear separation between the code that handles the request and the code that generates the response that will be sent back to the client. To achieve this, we write **controllers**. Controllers are simply functions that handle requests coming through a particular URL.
+
+To get started, create a **controllers/** folder inside the **src/** folder. Inside **controllers** create two files: **index.js** and **home.js**. We would export our functions from within index.js. You could name home.js anything you want, but typically you want to name controllers after what they control. For example, you might have a file **usersController.js** to hold every function related to users in your **app**.
+
+Open **src/controllers/home.js** and enter the code below:
+
+```
+import { testEnvironmentVariable } from '../settings';
+
+export const indexPage = (req, res) => res.status(200).json({ message: testEnvironmentVariable });
+```
+
+You will notice that we only moved the function that handles the request for the **/** route.
+
+Open **src/controllers/index.js** and enter the below code.
+
+```
+export * from './home';
+```
+
+We export everything from the **home.js** file. This allows us shorten our import statements to **import { indexPage } from '../controllers';**.
+
+Open **src/routes/index.js** and replace the code there with the one below:
+
+```
+import express from 'express';
+import { indexPage } from '../controllers';
+const indexRouter = express.Router();
+
+indexRouter.get('/', indexPage);
+
+export default indexRouter;
+```
+
+The only change here is that we’ve provided a function to handle the request to the **/** route.
+
+You just successfully wrote your first controller. From here it’s a matter of adding more files and functions as needed.
+
+Go ahead and play with the app by adding a few more routes and controllers. You could add a route and a controller for the about page. **Remember to update your test**, though.
+
+Run **yarn test** to confirm that we’ve not broken anything. Does your test pass? That’s cool.
+
+This is a good point to commit our changes.
+
+## Connect a PostgreSQL Database and Create a Model 
+
+Our **controller** currently returns **hard-coded** text messages. In a real-world app, we often need to store and retrieve information from a database. In this section, we will connect our app to a **PostgreSQL** database.
+
+We’re going to implement the storage and retrieval of simple text messages using a database. We have two options for setting a database: we could provision one from a cloud server, or we could set up our own locally.
+
+I would recommend you provision a database from a cloud server. **ElephantSQL**[https://www.elephantsql.com/] has a **free** plan that gives **20MB of free storage** which is enough for this tutorial. Visit the site and click on **Get a managed database today**. Create an account (if you don’t have one) and follow the instructions to create a free plan. Take note of the URL on the database details page. We’ll be needing it soon.
+
+If you would rather set up a database locally, you should visit the PostgreSQL and PgAdmin sites for further instructions.
+
+Once we have a database set up, we need to find a way to allow our **Express** app to communicate with our database. **Node.js** by default doesn’t support reading and writing to **PostgreSQL** database, so we’ll be using a library named, **node-postgres**.
+
+**node-postgres** executes **SQL** queries in **node** and returns the result as an **object**, from which we can grab items from the **rows** key.
+
+Enough said, let’s connect **node-postgres** to our application. We'll first install this **dependency** by running the following command:
+
+```
+yarn add pg
+``` 
+
+Open **settings.js** and add the line below:
+
+```
+export const connectionString = process.env.CONNECTION_STRING;
+```
+
+Open your **.env** file and add the **CONNECTION_STRING** variable.
+
+This is the connection string we’ll be using to establish a connection to our database. The general form of the connection string is shown below:
+
+```
+CONNECTION_STRING="postgres://ccnenevv:sFHbU6upeYq3731Zhehid_D4DZxrE1nk@hattie.db.elephantsql.com/ccnenevv"
+```
+
+If you’re using **elephantSQL** you should copy the **URL** from the database details page.
+
+```
+USE THE SCREENSHOT IN THE PAGE ON ELEPHANTQSL
+```
+
+Inside your **/src** folder, create a new folder called **models/**. Inside this folder, create two files:
+
+1. pool.js
+2. model.js
+
+Open **pools.js** and paste the following code:
+
+```
+import { Pool } from 'pg';
+import dotenv from 'dotenv';
+import { connectionString } from '../settings';
+dotenv.config();
+
+export const pool = new Pool({ connectionString });
+```
+
+First, we import the **Pool** and **dotenv** from the **pg** and **dotenv** packages, 
+and then import the settings we created for our **Postgres** database before 
+initializing **dotenv**. We establish a **connection** to our database with the **Pool** object.
+
+In **node-postgres**, every **query** is executed by a **client**. 
+
+A **Pool** is a **collection of clients** for communicating with the database.
+
+To create the connection, the **pool constructor** takes a **config object**. You can read more about all the possible configurations on the **node-postgres** site[https://node-postgres.com/api/pool]. It also accepts a single connection string, which will be use here.
+
+Open **model.js** and paste the following code:
+
+```
+import { pool } from './pool';
+
+class Model {
+  constructor(table) {
+    this.pool = pool;
+    this.table = table;
+    this.pool.on('error', (err, client) => `Error, ${err}, on idle client${client}`);
+  }
+
+  async select(columns, clause) {
+    let query = `SELECT ${columns} FROM ${this.table}`;
+    if (clause) query += clause;
+    return this.pool.query(query);
+  }
+}
+
+export default Model;
+```
+
+We create a **model class** whose **constructor** accepts the database table we wish to operate on. We’ll be using a single pool for all our models.
+
+We then create a select method which we will use to retrieve items from our database. This method accepts the columns we want to retrieve and a clause, such as a **WHERE** clause. It returns the result of the query, which is a Promise. Remember we said earlier that every query is executed by a client, but here we execute the query with pool. This is because, when we use **pool.query**, **node-postgres** executes the query using the first available idle client.
+
+The query you write is entirely up to you, provided it is a valid **SQL statement** that can be executed by a **Postgres** engine.
+
+The next step is to actually create an **API endpoint** to utilize our newly connected database. Before we do that, I’d like us to create some utility functions. The goal is for us to have a way to perform common database operations from the command line.
+
+Create a folder, **utils/** inside the **src/** folder. Create three files inside this folder:
+
+1. queries.js
+2. queryFunctions.js
+3. runQuery.js
+
+We’re going to create functions to create a table in our database, insert seed data in the table, and to delete the table.
+
+Open up **queries.js** and paste the following code:
+
+
+```
+export const createMessageTable = `
+DROP TABLE IF EXISTS messages;
+CREATE TABLE IF NOT EXISTS messages (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR DEFAULT '',
+  message VARCHAR NOT NULL
+  )
+  `;
+
+export const insertMessages = `
+INSERT INTO messages(name, message)
+VALUES ('chidimo', 'first message'),
+      ('orji', 'second message')
+`;
+
+export const dropMessagesTable = 'DROP TABLE messages';
+```
+
+In this file, we define three **SQL** query strings. The first query deletes and recreates the messages table. The second query inserts two rows into the messages table. 
+
+Feel free to add more items here. The last query drops/deletes the messages table.
+
+Open **queryFunctions.js** and paste the following code:
+
+```
+import { pool } from '../models/pool';
+import {
+  insertMessages,
+  dropMessagesTable,
+  createMessageTable,
+} from './queries';
+
+export const executeQueryArray = async arr => new Promise(resolve => {
+  const stop = arr.length;
+  arr.forEach(async (q, index) => {
+    await pool.query(q);
+    if (index + 1 === stop) resolve();
+  });
+});
+
+export const dropTables = () => executeQueryArray([ dropMessagesTable ]);
+export const createTables = () => executeQueryArray([ createMessageTable ]);
+export const insertIntoTables = () => executeQueryArray([ insertMessages ]);
+```
+
+In the code above, we've created functions to execute the queries we've defined earlier. Note that the **executeQueryArray** function executes an array of queries and waits for each one to complete inside the loop. (Don’t do such a thing in production code though). Then, we only resolve the promise once we have executed the last query in the list. The reason for using an array is that the number of such queries will grow as the number of tables in our database grows.
+
+Open **runQuery.js** and paste the following code:
+
+```
+import { createTables, insertIntoTables } from './queryFunctions';
+
+(async () => {
+  await createTables();
+  await insertIntoTables();
+})();
+```
+
+This is where we execute the functions to create the table and insert the messages in the table. Let’s add a command in the scripts section of our **package.json** to execute this file.
+
+```
+"runQuery": "babel-node ./src/dbutils/runQuery"
+```
+
+After executing the previous command for 10 seconds, press **crtl + C** to interrupt the app.
+
+Now, if you inspect your database, you will see that the **messages** table has been created and that the messages were inserted into the table.
+
+If you’re using **ElephantSQL**, go to its page and, on the database details page, click on **BROWSER** from the left navigation menu. Select the **messages table** and click **Execute**. You should see the messages from the **queries.js** file.
+
+Let’s create a **controller** and a **route** to display the messages from our database.
+
+Create a new **controller** file **src/controllers/messages.js** and paste the following code:
+
+```
+import Model from '../models/model';
+
+const messagesModel = new Model('messages');
+export const messagesPage = async (req, res) => {
+  try {
+    const data = await messagesModel.select('name, message');
+    res.status(200).json({ messages: data.rows });
+  } catch (err) {
+    res.status(200).json({ messages: err.stack });
+  }
+};
+```
+
+We've imported our Model class and created a new instance of that model. This represents the messages table in our database. We then use the **select** method of the model to query our database. The data (name and message) we get is sent as **JSON** in the response.
+
+Next, we've defined the **messagesPage** controller as an **async** function. Since **node-postgres** queries return a **promise**, we **await** the result of that query. If we encounter an error during the query, we catch it and display the stack to the user. You should decide how to handle the error.
+
+Before proceding to the next update in the code, go to **src/controllers/index.js** and add the following line:
+
+```
+...
+export * from './messages';
+```
+
+Now, let's add the **messages** endpoint to **src/routes/index.js** and update the import line.
+
+```
+import { indexPage, messagesPage } from '../controllers';
+...
+indexRouter.get('/messages', messagesPage)
+...
+```
+
+Now, navigating to [http://localhost:3000/v1/messages] you'll notice some changes, as shown below:
+
+```
+MUST TAKE A SCREENSHOT...
+```
+
+It's time to make some changes, so let's update our test file. 
+
+When doing TDD, you usually write your tests before implementing the code that makes the test pass. I’m taking the opposite approach here because we’re still working on setting up the database.
+
+Create a new file, **test/hooks.js** and paste the next chunk of code:
+
+```
+import {
+  dropTables,
+  createTables,
+  insertIntoTables,
+} from '../src/utils/queryFunctions';
+
+before(async () => {
+  await createTables();
+  await insertIntoTables();
+});
+
+after(async () => {
+  await dropTables();
+});
+```
+
+When our test starts, **Mocha** finds this file and executes it before running any test file. It executes the **before** hook to create the database and insert some items into it. The test files then run after that. Once the test is finished, **Mocha** runs the **after** hook in which we **drop the database**. This ensures that each time we run our tests, we do so with clean and new records in our database.
+
+Create a new test file **test/messages.test.js** and add the following code:
+
+```
+import { expect, server, BASE_URL } from './setup';
+
+describe('Messages', () => {
+  it('get messages page', done => {
+    server
+      .get(`${BASE_URL}/messages`)
+      .expect(200)
+      .end((err, res) => {
+        expect(res.status).to.equal(200);
+        expect(res.body.messages).to.be.instanceOf(Array);
+        res.body.messages.forEach(m => {
+          expect(m).to.have.property('name');
+          expect(m).to.have.property('message');
+        });
+        done();
+      });
+  });
+});
+```
+
+Here's what is happenning: the instructions assert that the result of the call to **/messages** is an array and that, for each of its elements (i.e., message objects), it's asserted that they have a name and a message property.
+
+The final step in this section is to update the **CI** files.
+
+Create the following sections at the end of **.travis.yml** file:
+
+```
+services:
+  - postgresql
+addons:
+  postgresql: "10"
+  apt:
+    packages:
+    - postgresql-10
+    - postgresql-client-10
+before_install:
+  - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
+  - sudo /etc/init.d/postgresql restart
+```
+
+This instructs **Travis** to spin up a **PostgreSQL** 10 database before running our tests.
+
+Add the command to create the database as the first entry in the **before_script** section in the same file(i.e., **.travis.yml** ):
+
+```
+- psql -c 'create database testdb;' -U postgres
+```
+
+Still in the **Travis** file, create the **CONNECTION_STRING** environment variable as written below:
+
+```
+CONNECTION_STRING="postgresql://postgres:postgres@localhost:5432/testdb"
+```
+
+Following, add the next section to **.appveyor.yml** file:
+
+```
+before_test:
+  - SET PGUSER=postgres
+  - SET PGPASSWORD=Password12!
+  - PATH=C:\Program Files\PostgreSQL\10\bin\;%PATH%
+  - createdb testdb
+services:
+  - postgresql101
+```
+
+Add the **connection** string environment variable to **appveyor**. Use the code below:
+
+```
+CONNECTION_STRING=postgresql://postgres:Password12!@localhost:5432/testdb
+```
+
+Now, **commit** your changes and push to **GitHub**. It's expected that the tests should pass on both **Travis CI** and **AppVeyor**.
+
+**Note**: I hope everything works fine on your end, but in case you should be having trouble for some reason, you can always check my code in the repo!
+
+Now, let’s see how we can add a message to our database. For this step, we’ll need a way to send POST requests to our URL. I’ll be using **Postman** to send POST requests.
+
+Let’s go the TDD route and update our test to reflect what we expect to achieve.
+
+Open **test/message.test.js** and add the below test case:
+
+```
+it('posts messages', done => {
+  const data = { name: 'some name', message: 'new message' };
+  server
+    .post(`${BASE_URL}/messages`)
+    .send(data)
+    .expect(200)
+    .end((err, res) => {
+      expect(res.status).to.equal(200);
+      expect(res.body.messages).to.be.instanceOf(Array);
+      res.body.messages.forEach(m => {
+        expect(m).to.have.property('id');
+        expect(m).to.have.property('name', data.name);
+        expect(m).to.have.property('message', data.message);
+      });
+      done();
+    });
+});
+```
+
+This test makes a **POST** request to the **/v1/messages** endpoint and we expect an array to be returned. We also check for the id, name, and message properties on the array.
+
+**Run your tests to see that this case fails. Let’s now fix it.**
+
+To send post requests, we use the post method of the server. We also send the name and message we want to insert. We expect the response to be an array, with a property id and the other info that makes up the query. The id is proof that a record has been inserted into the database.
+
+Open src/models/model.js and add the insert method:
+
+
 
 
 
