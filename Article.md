@@ -2,45 +2,39 @@
 
 *QUICK SUMMARY* In this article, we will create a set of API endpoints using Express from scratch in ES6 syntax, and cover some development best practices. Find out how all the pieces work together as you create a small project using Continuous Integration and Test-Driven Development before deploying to Heroku.
 
-We will take a Test-Driven Development (TDD) approach and the set up Continuous Integration (CI) job to automatically run our tests on Travis CI and AppVeyor, complete with code quality and coverage reporting. We will learn about controllers, models (with PostgreSQL), error handling, and asynchronous Express middleware. Finally, we’ll complete the CI/CD pipeline by configuring automatic deploy on Heroku.
+We will take a **Test-Driven Development (TDD)** approach and the set up **Continuous Integration (CI)** job to automatically run our tests on **Travis CI** and **AppVeyor**, complete with **code quality** and **coverage reporting**. We will learn about controllers, models (with **PostgreSQL**), error handling, and **asynchronous Express middleware**. Finally, we’ll complete the **CI/CD pipeline** by configuring **automatic deploy** on **Heroku**.
 
-It sounds like a lot, but this tutorial is aimed at beginners who are ready to try their hands on a back-end project with some level of complexity, and who may still be confused as to how all the pieces fit together in a real project.
+It sounds like a lot, but this tutorial is aimed at beginners who are ready to try their hands on a **back-end** project with some level of complexity, and who may still be confused as to how all the pieces fit together in a real world project.
 
 It is robust without being overwhelming and is broken down into sections that you can complete in a reasonable length of time.
 
-Getting Started #
+## Getting Started
+
 The first step is to create a new directory for the project and start a new node project. Node is required to continue with this tutorial. If you don’t have it installed, head over to the official website, download, and install it before continuing.
 
 I will be using yarn as my package manager for this project. There are installation instructions for your specific operating system here. Feel free to use npm if you like.
 
 ## Hands on
 
-Open your terminal, create a new directory, and start a Node.js project.
+Open your terminal, create a new directory, and start a **Node.js** project.
 
 ```
-# create a new directory
 mkdir express-api-template
-
-# change to the newly-created directory
+...
 cd express-api-template
-
-# initialize a new Node.js project
+...
 npm init
-
 ```
 
-Answer the questions that follow to generate a package.json file. This file holds information about your project. Example of such information includes what dependencies it uses, the command to start the project, and so on.
+Answer the questions that follow to generate a **package.json** file. This file holds information about your project. Example of such information includes what dependencies it uses, the command to start the project, and so on.
 
-You may now open the project folder in your editor of choice. I use visual studio code. It’s a free IDE with tons of plugins to make your life easier, and it’s available for all major platforms. You can download it from the official website.
+You may now open the project folder in your **editor or IDE** of choice. I use **VScode**. It’s a free IDE with tons of plugins to make your life easier, and it’s available for all major platforms. You can download it from the official website.
 
-Create the following files in the project folder:
-
- README.md
-.editorconfig
+Create the **README.md** and **.editorconfig** files in the project's root folder.
 
 Here’s a description of what .editorconfig does from the EditorConfig website. (You probably don’t need it if you’re working solo, but it does no harm, so I’ll leave it here.)
 
-“EditorConfig helps maintain consistent coding styles for multiple developers working on the same project across various editors and IDEs.”
+**“EditorConfig helps maintain consistent coding styles for multiple developers working on the same project across various editors and IDEs.”**
 
 Open .editorconfig and paste the following code:
 
@@ -79,12 +73,13 @@ build/
 ### These are all the files and folders we don’t want to track. We don’t have them in our project yet, but we’ll see them as we proceed.
 
 At this point, you should have the following folder structure.
-
+```
 EXPRESS-API-TEMPLATE
 ├── .editorconfig
 ├── .gitignore
 ├── package.json
 └── README.md
+```
 
 I consider this to be a good point to commit my changes and push them to GitHub.
 
@@ -92,7 +87,7 @@ I consider this to be a good point to commit my changes and push them to GitHub.
 
 Express is a Node.js framework for building web applications. According to the official website, it is a
 
-*** "Fast, unopinionated, minimalist web framework for Node.js." ***
+***"Fast, unopinionated, minimalist web framework for Node.js."***
 
 There are other great web application frameworks for Node.js, but Express is very popular, with over 47k GitHub stars at the time of this writing.
 
@@ -126,7 +121,7 @@ We’ll now perform some house-cleaning operations.
 ```
 
 At this point, your project folder structure looks like below. You can see how VS Code highlights the file changes that have taken place.
-
+```
 EXPRESS-API-TEMPLATE
 ├── node_modules
 ├── src
@@ -140,7 +135,7 @@ EXPRESS-API-TEMPLATE
 ├── package.json
 ├── README.md
 └── yarn.lock
-
+```
 Open src/app.js and replace the content with the below code.
 
 ```
@@ -183,7 +178,7 @@ yarn start
 
 If you’ve set up everything correctly you should only see $ node ./src/bin/www in your terminal.
 
-Visit [http://localhost:3000/v1] in your browser. You should see the following message:
+[Visit this link](http://localhost:3000/v1) in your browser. You should see the following message:
 
 ```
 {
@@ -489,7 +484,7 @@ The **pretty** command prettifies our code. The **postpretty** command is run im
 Run **yarn pretty**. You should see that we have only two warnings about the presence of alert in the **bin/www.js** file.
 
 Here’s what our project structure looks like at this point.
-
+```
 EXPRESS-API-TEMPLATE
 ├── build
 ├── node_modules
@@ -508,7 +503,7 @@ EXPRESS-API-TEMPLATE
 ├── package.json
 ├── README.md
 └── yarn.lock
-
+```
 You may find that you have an additional file, yarn-error.log in your project root. Add it to .gitignore file. Commit your changes.
 
 ## Settings And Environment Variables In Our .Env File
@@ -528,11 +523,9 @@ TEST_ENV_VARIABLE="Environment variable is coming across"
 ```
 
 To be able to read environment variables into our project, there’s a nice library, **dotenv** that reads our **.env** file and gives us access to the environment variables defined inside. Let’s install it.
-
 ```
 yarn add dotenv
 ```
-
 Add the **.env** file to the list of files being watched by nodemon.
 
 Now, create the **settings.js** file inside the **src/** folder and add the below code:
@@ -562,14 +555,12 @@ export default indexRouter;
 
 The only change we’ve made here is that we import **testEnvironmentVariable** from our **settings.js** file and use it as the return message for a request from the '/' route.
 
-Visit http://localhost:3000/v1 and you should see the message, as shown below.
-
+[Visit this link](http://localhost:3000/v1) and you should see the message, as shown below.
 ```
 {
   "message": "Environment variable is coming across."
 }
 ```
-
 And that’s it! From now on, we can add as many environment variables as we want and we can export them from our **settings.js** file.
 
 This is a good point to commit your code. Remember to **prettify** and **lint** your code.
@@ -654,7 +645,7 @@ describe('Index page test', () => {
 
 Here we make a request to get the base endpoint, which is '/' and assert that the **res.body** object has a message key with a value of **Environment** variable is coming across.
 
-If you’re not familiar with the **describe** - **it** pattern, I encourage you to take a quick look at **Mocha’s “Getting Started”** [https://mochajs.org/#getting-started] doc.
+If you’re not familiar with the **describe** - **it** pattern, I encourage you to take a quick look at [Mocha’s “Getting Started”](https://mochajs.org/#getting-started) doc.
 
 Add the test command to the scripts section of **package.json**.
 
@@ -723,12 +714,11 @@ after_script:
   - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESUL
 ```
 
-#### Here's What is Happenning
+### Here's What is Happenning
 
 First, we tell **Travis** to run our test with **Node.js**, then set the **CC_TEST_REPORTER_ID** global environment variable (we’ll get to this in the **Code Climate** section). In the **matrix** section, we tell **Travis** to run our tests with **Node.js v12**. We also want to cache the **node_modules/** directory so it doesn’t have to be regenerated every time.
 
 We install our dependencies using the **yarn** command which is a shorthand for **yarn install**. The **before_script** and **after_script** commands are used to upload coverage results to **codeclimate**. We’ll configure **codeclimate** shortly. After **yarn test** runs successfully, we want to also run **yarn coverage** which will upload our coverage report to **coveralls.io**.
-
 
 ### COVERALLS
 
@@ -771,13 +761,11 @@ On the **details** page, scroll down to find the **BADGE YOUR REPO** section. Cl
 5. Under **Codebase Summary**, click on **Test Coverage**. Under the **Test coverage** menu, copy the **TEST REPORTER ID** and paste it in your **.travis.yml** as the value of **CC_TEST_REPORTER_ID**.
 6. Still on the same page, on the **left-hand navigation**, under **EXTRAS**, click on **Badges**. Copy the **maintainability** and **test coverage** badges in markdown format and **paste** them into your **README.md** file.
 
-It’s **important to note** that there are two ways of configuring maintainability checks. There are the default settings that are applied to every repo, but if you like, you could provide a **.codeclimate.yml** file at the root of your project. I’ll be using the default settings, which you can find under the Maintainability tab of the repo settings page. I encourage you to take a look at least. If you still want to configure your own settings, this **guide**[https://docs.codeclimate.com/docs/advanced-configuration] will give you all the information you need.
+It’s **important to note** that there are two ways of configuring maintainability checks. There are the default settings that are applied to every repo, but if you like, you could provide a **.codeclimate.yml** file at the root of your project. I’ll be using the default settings, which you can find under the Maintainability tab of the repo settings page. I encourage you to take a look at least. If you still want to configure your own settings, this [**guide**](https://docs.codeclimate.com/docs/advanced-configuration) will give you all the information you need.
 
 ### APPVEYOR
 
 **AppVeyor** and **Travis CI** are both **automated test runners**. The main difference is that **travis-ci** runs tests in a **Linux environment** while **AppVeyor** runs tests in a **Windows environment**. This section is included to show how to get started with **AppVeyor**.
-
-
 
 1. Visit **AppVeyor**[https://ci.appveyor.com/] and **log in** or **sign up**.
 2. On the next page, click on **NEW PROJECT**.
@@ -860,7 +848,7 @@ Our **controller** currently returns **hard-coded** text messages. In a real-wor
 
 We’re going to implement the storage and retrieval of simple text messages using a database. We have two options for setting a database: we could provision one from a cloud server, or we could set up our own locally.
 
-I would recommend you provision a database from a cloud server. **ElephantSQL**[https://www.elephantsql.com/] has a **free** plan that gives **20MB of free storage** which is enough for this tutorial. Visit the site and click on **Get a managed database today**. Create an account (if you don’t have one) and follow the instructions to create a free plan. Take note of the URL on the database details page. We’ll be needing it soon.
+I would recommend you provision a database from a cloud server. [**ElephantSQL**](https://www.elephantsql.com/) has a **free** plan that gives **20MB of free storage** which is enough for this tutorial. Visit the site and click on **Get a managed database today**. Create an account (if you don’t have one) and follow the instructions to create a free plan. Take note of the URL on the database details page. We’ll be needing it soon.
 
 If you would rather set up a database locally, you should visit the PostgreSQL and PgAdmin sites for further instructions.
 
@@ -918,7 +906,7 @@ In **node-postgres**, every **query** is executed by a **client**.
 
 A **Pool** is a **collection of clients** for communicating with the database.
 
-To create the connection, the **pool constructor** takes a **config object**. You can read more about all the possible configurations on the **node-postgres** site[https://node-postgres.com/api/pool]. It also accepts a single connection string, which will be use here.
+To create the connection, the **pool constructor** takes a **config object**. You can read more about all the possible configurations on the [**node-postgres** site](https://node-postgres.com/api/pool). It also accepts a single connection string, which will be use here.
 
 Open **model.js** and paste the following code:
 
@@ -959,7 +947,6 @@ Create a folder, **utils/** inside the **src/** folder. Create three files insid
 We’re going to create functions to create a table in our database, insert seed data in the table, and to delete the table.
 
 Open up **queries.js** and paste the following code:
-
 
 ```
 export const createMessageTable = `
@@ -1070,7 +1057,7 @@ indexRouter.get('/messages', messagesPage)
 ...
 ```
 
-Now, navigating to [http://localhost:3000/v1/messages] you'll notice some changes, as shown below:
+Now, navigating to [messages endpoint](http://localhost:3000/v1/messages) you'll notice some changes, as shown below:
 
 ```
 MUST TAKE A SCREENSHOT...
@@ -1257,7 +1244,7 @@ Run your tests to see if they pass.
 
 Open **Postman** and send a **POST** request to the messages endpoint. If you’ve just run your test, remember to run **yarn runQuery** to recreate the messages table.
 
-Next, refresh [http://localhost:3000/v1/messages] and have a look at the results. The new message is expected to be listed. If that does not happen, please review the steps above.
+Next, refresh [messages endpoint](http://localhost:3000/v1/messages) and have a look at the results. The new message is expected to be listed. If that does not happen, please review the steps above.
 
 We've travelled a long way this far. So, let's feed our repo again. It's time to add and commit our improvements. Our tests should pass on both Travis and AppVeyor. Your test coverage will drop by a few points, but that’s okay.
 
@@ -1269,7 +1256,7 @@ Our discussion of **Express** won’t be complete without talking about **middle
 
 A **middleware** can perform any number of functions such as authentication, modifying the request body, and so on. 
 
-See the **Express documentation on using middleware**[https://expressjs.com/en/guide/using-middleware.html].
+See the [**Express documentation on using middleware**](https://expressjs.com/en/guide/using-middleware.html).
 
 We’re going to write a simple **middleware** that modifies the request body. Our **middleware** will *append the word SAYS:* to the incoming message before it is saved in the database.
 
@@ -1343,7 +1330,7 @@ But once we start writing **asynchronous** router handlers and middleware, then 
 
 Our **modifyMessage** middleware is a synchronous function. If an error occurs in that function, Express will handle it just fine. Let’s see how we deal with errors in asynchronous middleware.
 
-Let’s say, before creating a message, we want to get a picture from the **Lorem Picsum API**[https://picsum.photos/] using this **URL**[https://picsum.photos/id/0/info]. This is an **asynchronous** operation that could either succeed or fail, and that presents a case for us to deal with.
+Let’s say, before creating a message, we want to get a picture from the [**Lorem Picsum API**](https://picsum.photos/) using this [**URL**](https://picsum.photos/id/0/info). This is an **asynchronous** operation that could either succeed or fail, and that presents a case for us to deal with.
 
 Let's begin by installing **Axios**.
 
@@ -1385,7 +1372,7 @@ app.use((err, req, res, next) => {
 ...
 ```
 
-This is our error handler. According to the Express error handling doc:
+This is our error handler. According to the **Express error handling** doc:
 
 **“[...] error-handling functions have four arguments instead of three: (err, req, res, next).”**
 
@@ -1394,3 +1381,201 @@ This is our error handler. According to the Express error handling doc:
 Once the app finds an error, it returns the stack trace with a status code of **400**. You could do whatever you like with the error. You might want to log it or send it somewhere.
 
 You've reached another checkpoint and it's time to commit the changes.
+
+### Deploy to Heroku
+
+1. To get started, go to https://www.heroku.com/ and either log in or register.
+2. Download and install the Heroku CLI from here.
+3. Open a terminal in the project folder to run the command.
+
+```
+heroku login
+```
+
+This will open a browser window and ask you to log into your Heroku account.
+
+Log in to grant your terminal access to your Heroku account, and create a new heroku app by running:
+
+```
+#app name is up to you
+heroku create app-name
+```
+
+This will create the app on Heroku and return two URLs.
+
+```
+# app production url and git url
+https://app-name.herokuapp.com/ | https://git.heroku.com/app-name.git
+```
+
+Copy the URL on the right and run the below command. Note that this step is optional as you may find that Heroku has already added the remote URL.
+
+```
+# add heroku remote url
+git remote add heroku https://git.heroku.com/my-shiny-new-app.git
+```
+
+Open a side terminal and run the command below. This shows you the app log in real-time as shown in the image.
+
+```
+heroku logs --tail
+```
+
+Run the following three commands to set the required environment variables:
+
+```
+heroku config:set TEST_ENV_VARIABLE="Environment variable is coming across."
+heroku config:set CONNECTION_STRING=your-db-connection-string-here.
+heroku config:set NPM_CONFIG_PRODUCTION=false
+```
+
+Remember in our scripts, we set:
+
+```
+"prestart": "babel ./src --out-dir build",
+"start": "node ./build/bin/www",
+```
+
+
+To start the app, it needs to be compiled down to **ES5** using **babel** in the prestart step because babel only exists in our development dependencies. We have to set **NPM_CONFIG_PRODUCTION** to false in order to be able to install those as well.
+
+To confirm everything is set correctly, run the command below. You could also visit the settings tab on the app page and click on **Reveal Config Vars**.
+
+```
+heroku config
+```
+
+Now run **git push heroku**.
+
+To open the app, run (e.g., **/v1** and **/v1/messages** routes):
+
+```
+heroku open /v1
+heroku open /v1/messages
+```
+
+If like me, you’re using the same **PostgresSQL** database for both development and production, you may find that each time you run your tests, the database is deleted. To recreate it, you could run either one of the following commands:
+
+1. Run script locally:
+
+```
+yarn runQuery
+```
+
+2. Run script remotely (i.e, on Heroku):
+
+```
+heroku run yarn runQuery
+```
+
+## Continuous Deployment (CD) With Travis
+
+Let’s now add **Continuous Deployment (CD)** to complete the **CI/CD** flow. We will be deploying from **Travis** after every successful test run.
+
+The first step is to install **Travis CI**. Installation instructions [here](https://github.com/travis-ci/travis.rb#installation). After successfully installing the **Travis CI**, login, running **one** of the commands **options** below. (**Note:** this should be done in **your project repository**.)
+
+1. **Login** (if your project is hosted on travis-ci.org, remove the --pro flag): 
+
+**Option A**:
+
+```
+travis login --pro
+```
+
+**Option B** (if you’re using two factor authentication):
+
+```
+travis login --pro --github-token enter-github-token-here
+```
+
+To get a **GitHub token**, visit the **developer settings** page of your account and generate one. (**Note**: it applies only if your account is secured with **2FA**).
+
+Open your **.travis.yml** and add a deploy section:
+
+```
+deploy:
+  provider: heroku
+  app:
+    master: app-name
+```
+
+Here, you are specifying that the app should be deployed to **Heroku**, which is the **provider** that will be hosting it. The **app sub-section** specifies that you want to deploy the master branch of our repo to the **app-name** app on **Heroku**. It’s always possible to deploy different branches to different apps. You can read more about the available options [here](https://docs.travis-ci.com/user/deployment/heroku/).
+
+In order to encrypt your **Heroku API key** and add it to the deploy section, run the following command:
+
+```
+travis encrypt $(heroku auth:token) --add deploy.api_key --pro
+```
+
+Next, let's add this new sub-section to the deploy section.
+
+```
+api_key:
+  secure: very-long-encrypted-api-key-string
+```
+
+It should look like this chunk:
+
+```
+...
+deploy:
+  provider: heroku
+  app:
+    master: express-api-template
+  api_key:
+    secure: KffewiIkllIIlkslvvvVVHoOZvsJrC0vfgN5Xewgr44vnsl
+```
+
+Where the **secure:** property is how the encrypted **API KEY** usually looks like.
+
+One more time, **commit** your changes and **push to GitHub**, while monitoring your logs. You will see the build triggered as soon as the **Travis** test is done. In this way, if you have a failing test, the changes would never be deployed. Likewise, if the build has failed, the whole test run would fail. Finally,this completes the **CI/CD** flow.
+
+## Conclusion
+
+If you’ve made it this far, I say, “Thumbs up!” In this tutorial, we successfully set up a new Express project. We went ahead to configure development dependencies as well as **Continuous Integration (CI)**. We then wrote asynchronous functions to handle requests to our API endpoints — completed with tests. We then looked briefly at error handling. Finally, we deployed our project to Heroku and configured Continuous Deployment.
+
+You now have a template for your next back-end project. We’ve only done enough to get you started, but you should keep learning to keep going. Be sure to check out the Express.js docs as well. If you would rather use **MongoDB** instead of **PostgreSQL**, I have a template [here](https://github.com/chidimo/Express-API-Template-With-MongoDB) that does exactly that. You can check it out for the setup. It has only a few points of difference.
+
+### Resources & References
+
+"How To Set Up An Express API Backend Project With PostgreSQL", Orji Chidi Matthew, Smashingmagazine.com[https://www.smashingmagazine.com/2020/04/express-api-backend-project-postgresql/]
+
+“Create Express API Backend With MongoDB ,” Orji Chidi Matthew, GitHub
+“A Short Guide To Connect Middleware”, [https://github.com/chidimo/Express-API-Template-With-MongoDB] Stephen Sugden
+
+**“Express API template”**, [https://stephensugden.com/middleware_guide/] GitHub
+
+**“AppVeyor vs Travis CI”**, [https://stackshare.io/stackups/appveyor-vs-travis-ci] 
+StackShare
+
+**“The Heroku CLI”**, [https://devcenter.heroku.com/articles/heroku-cli] Heroku Dev Center
+
+**“Heroku Deployment**,” [https://docs.travis-ci.com/user/deployment/heroku/] Travis CI
+
+**Express.js** 
+
+“Using middleware,” [https://expressjs.com/en/guide/using-middleware.html]
+
+“Error Handling,” [https://expressjs.com/en/guide/error-handling.html]
+
+**Mocha** “Getting Started,” [https://mochajs.org/#getting-started] 
+
+**nyc** https://github.com/istanbuljs/nyc
+
+**ElephantSQL**[https://www.elephantsql.com/]
+
+**Postman**[https://www.postman.com/]
+
+**Express**[https://expressjs.com/]
+
+**Travis CI** [https://travis-ci.com/]
+
+**Code Climate** [https://docs.codeclimate.com/docs/advanced-configuration]
+
+**PostgreSQL** [https://www.postgresql.org/]
+
+**pgAdmin** [https://www.pgadmin.org/]
+
+
+
+
