@@ -1,11 +1,12 @@
 // Copyright 2021 Franklin Siqueira.
 // SPDX-License-Identifier: Apache-2.0
 
-var logger = require('morgan');
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var indexRouter = require('./routes/index');
-var app = express();
+const logger = require('morgan');
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const indexRouter = require('./routes/index');
+
+const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());

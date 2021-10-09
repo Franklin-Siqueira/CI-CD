@@ -35,11 +35,11 @@
     "coveralls": "^3.1.1",
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-import": "^2.24.2",
     "mocha": "^9.0.3",
     "nodemon": "^2.0.12",
     "nyc": "^15.1.0",
-    "prettier": "^2.3.2",
+    "prettier": "^2.4.1",
     "sinon-chai": "^3.7.0",
     "supertest": "^6.1.4"
   },
@@ -55,7 +55,9 @@
   "keywords": [
     "JavaScript",
     "Appveyor",
-    "Travis"
+    "Travis",
+    "Mocha",
+    "Coveralls"
   ],
   "author": "Franklin Siqueira <franklinsiqueira@yahoo.com> (https://frank-lp.herokuapp.com/)",
   "license": "MIT",
