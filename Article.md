@@ -1,6 +1,8 @@
 # Original Article
 
-*QUICK SUMMARY* In this article, we will create a set of API endpoints using Express from scratch in ES6 syntax, and cover some development best practices. Find out how all the pieces work together as you create a small project using Continuous Integration and Test-Driven Development before deploying to Heroku.
+#### *QUICK SUMMARY*
+
+In this article, we will create a set of API endpoints using Express from scratch in ES6 syntax, and cover some development best practices. Find out how all the pieces work together as you create a small project using Continuous Integration and Test-Driven Development before deploying to Heroku.
 
 We will take a **Test-Driven Development (TDD)** approach and the set up **Continuous Integration (CI)** job to automatically run our tests on **Travis CI** and **AppVeyor**, complete with **code quality** and **coverage reporting**. We will learn about controllers, models (with **PostgreSQL**), error handling, and **asynchronous Express middleware**. Finally, we’ll complete the **CI/CD pipeline** by configuring **automatic deploy** on **Heroku**.
 

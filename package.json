@@ -6,7 +6,7 @@
     "prestart": "babel ./src --out-dir build",
     "start": "node ./build/bin/www",
     "startdev": "nodemon --exec babel-node ./src/bin/www",
-    "lint": "./node_modules/.bin/eslint ./src",
+    "lint": "eslint ./src",
     "pretty": "prettier --write '**/*.{js,json}' '!node_modules/**'",
     "postpretty": "yarn lint --fix",
     "test": "nyc --reporter=html --reporter=text --reporter=lcov mocha -r @babel/register",
@@ -42,5 +42,25 @@
     "prettier": "^2.3.2",
     "sinon-chai": "^3.7.0",
     "supertest": "^6.1.4"
-  }
+  },
+  "description": "<!--  Copyright 2021 Franklin Siqueira.  SPDX-License-Identifier: Apache-2.0 --> # Express API template",
+  "main": "index.js",
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Franklin-Siqueira/CI-CD.git"
+  },
+  "keywords": [
+    "JavaScript",
+    "Appveyor",
+    "Travis"
+  ],
+  "author": "Franklin Siqueira <franklinsiqueira@yahoo.com> (https://frank-lp.herokuapp.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Franklin-Siqueira/CI-CD/issues"
+  },
+  "homepage": "https://github.com/Franklin-Siqueira/CI-CD#readme"
 }

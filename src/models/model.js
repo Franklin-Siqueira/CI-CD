@@ -16,7 +16,7 @@ class Model {
   }
 
   /**
-   *
+   *  select
    * @param {console*} columns : ;
    * @param {*} clause
    * @returns
@@ -28,7 +28,7 @@ class Model {
   }
 
   /**
-   *
+   *  insertWithReturn
    * @param {*} columns : ;
    * @param {*} values
    * @returns
