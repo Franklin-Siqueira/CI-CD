@@ -1429,10 +1429,12 @@ heroku logs --tail
 Run the following three commands to set the required environment variables:
 
 ```
-heroku config:set TEST_ENV_VARIABLE="Environment variable is coming across."
+heroku config:set TEST_ENV_VARIABLE="Environment variable is coming across..."
 heroku config:set CONNECTION_STRING=your-db-connection-string-here.
 heroku config:set NPM_CONFIG_PRODUCTION=false
 ```
+
+**More info**: [Heroku Dev Center](https://devcenter.heroku.com/articles/config-vars)
 
 Remember in our scripts, we set:
 
