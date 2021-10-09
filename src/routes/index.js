@@ -20,7 +20,7 @@ const indexRouter = express.Router();
 //   res.status(200)
 //    .json(
 // {
-//   message: `Welcome to EXPRESS API TEMPLATE! This is our env ${testEnvironmentVariable}` 
+//   message: `Welcome to EXPRESS API TEMPLATE! This is our env ${testEnvironmentVariable}`
 // }
 // );
 // });

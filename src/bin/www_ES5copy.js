@@ -5,42 +5,17 @@
 /**
  * Module dependencies.
  */
-
-const app = require('../app');
-const debug = require('debug')('august0321:server');
 const http = require('http');
-
-/**
- * Get port from environment and store in Express.
- */
-
-const port = normalizePort(process.env.PORT || '3000');
-app.set('port', port);
-
-/**
- * Create HTTP server.
- */
-
-const server = http.createServer(app);
-
-/**
- * Listen on provided port, on all network interfaces.
- */
-
-server.listen(port, () => {
-  console.log(`listening on PORT ${port}`);
-});
-// server.on('error', onError);
-server.on('listening', onListening);
+const debug = require('debug')('august0321:server');
+const app = require('../app');
 
 /**
  * Normalize a port into a number, string, or false.
  */
-
-function normalizePort(val) {
+ function normalizePort(val) {
   const port = parseInt(val, 10);
 
-  if (isNaN(port)) {
+  if (port.isNaN()) {
     // named pipe
     return val;
   }
@@ -52,6 +27,36 @@ function normalizePort(val) {
 
   return false;
 }
+
+/**
+ * Get port from environment and store in Express.
+ */
+const port = normalizePort(process.env.PORT || '3000');
+app.set('port', port);
+
+/**
+ * Create HTTP server.
+ */
+const server = http.createServer(app);
+
+/**
+ * Event listener for HTTP server "listening" event.
+ */
+
+ function onListening() {
+  const addr = server.address();
+  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
+  debug(`Listening on ${bind}`);
+}
+
+/**
+ * Listen on provided port, on all network interfaces.
+ */
+server.listen(port, () => {
+  console.log(`listening on PORT ${port}`);
+});
+// server.on('error', onError);
+server.on('listening', onListening);
 
 /**
  * Event listener for HTTP server "error" event.
@@ -80,13 +85,3 @@ function normalizePort(val) {
 //       throw error;
 //   }
 // }
-
-/**
- * Event listener for HTTP server "listening" event.
- */
-
-function onListening() {
-  const addr = server.address();
-  const bind = typeof addr === 'string' ? `pipe ${addr}` : `port ${addr.port}`;
-  debug(`Listening on ${bind}`);
-}
